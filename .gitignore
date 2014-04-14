@@ -1,3 +1,19 @@
+# Custom
+/cgi-bin
+/node-v0.10.26
+.*
+!/.gitignore
+access.log
+core
+error.log
+*.tar.gz
+*.error
+*.err
+*.out
+*.gitignore
+replica.my.cnf
+
+
 # C++ objects and libs
 
 *.slo
