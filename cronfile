@@ -1,3 +1,0 @@
-PATH=/usr/local/bin:/usr/bin:/bin:$HOME/.npm/bin:$PATH
-MAILTO=rillke@wikipedia.de
-20 3 * * * jsub -once -mem 1200m -N production .npm/bin/node update.js
