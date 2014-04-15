@@ -10,6 +10,7 @@ var client = new bot('.node-bot.config.json'),
 
 mobArchBot = {
 	version: '0.0.0.1',
+	// TODO: Load this config from Commons.
 	config: {
 		pages: [{
 			from: 'Commons:Mobile app/deletion request tracking',
