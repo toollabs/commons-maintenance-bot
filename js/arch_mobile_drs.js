@@ -5,13 +5,12 @@ var now = new Date();
 
 (function(bot) {
 // pass configuration object
-var client = new bot('../.node-bot.config.json'),
+var client = new bot('.node-bot.config.json'),
 	mobArchBot;
 
 mobArchBot = {
 	version: '0.0.0.1',
 	config: {
-		// TODO: Load this config from Commons.
 		pages: [{
 			from: 'Commons:Mobile app/deletion request tracking',
 			to: (function() {
