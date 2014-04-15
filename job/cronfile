@@ -1,3 +1,3 @@
 PATH=/usr/local/bin:/usr/bin:/bin:$HOME/.npm/bin:$PATH
 MAILTO=rillke@wikipedia.de
-37 4 * * 2 jsub -once -mem 1800m -N production .npm/bin/node js/weekly.js
+37 4 * * 2 jsub -once -mem 1800m -N weekly_com_m node/bin/node js/weekly.js
