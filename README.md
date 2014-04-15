@@ -1,4 +1,4 @@
-upload-stats-bot
-================
+commons-maintenance-bot
+=======================
 
-Tool labs. Statistics update bot running node.js
+Tool labs. Doing maintenance at Wikimedia Commons.
