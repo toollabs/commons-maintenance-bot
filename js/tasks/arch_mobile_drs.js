@@ -1,12 +1,11 @@
-var nodemw	= require('nodemw');
-var dateFormat	= require('dateformat');
-var now = new Date();
+var dateFormat = require('dateformat');
+var jqDef      = require('jquery-deferred');
+var now	       = new Date();
 
 
-(function(bot) {
+(function() {
 // pass configuration object
-var client = new bot('.node-bot.config.json'),
-	mobArchBot;
+var mobArchBot, client;
 
 mobArchBot = {
 	version: '0.0.0.1',
@@ -29,30 +28,8 @@ mobArchBot = {
 		}]
 	},
 	launch: function() {
-		var mobArchiver = this;
 		console.log('Hi. This is mobile deletion request archive bot.');
-		mobArchiver.logOut(function() {
-			client.logIn(function() {
-				// Make the server creating an editToken for our session.
-				// If we do that later while processing multiple pages, the sever
-				// would create a lot of different tokens due to replecation lag.
-				setTimeout(function() {
-					client.api.call({
-						action: 'tokens'
-					}, function(r) {
-						setTimeout(function() {
-							mobArchiver.nextPage();
-						}, 1000);
-					});
-				}, 1000);
-			});
-		});
-
-		// Kill myself if running too long
-		setTimeout(function() {
-			mobArchiver.logOut();
-			process.exit(1);
-		}, 90000);
+		this.nextPage();
 	},
 	processPage: function( pg ) {
 		var mobArchiver = this;
@@ -71,18 +48,21 @@ mobArchBot = {
 		if (this.config.pages.length) {
 			this.processPage( pgs.pop() );
 		} else {
-			console.log("Good night.");
-			this.logOut(function() {
-				process.exit(0);
-			});
+			console.log("Moved deletion request archives.");
+			this.deferred.resolve();
 		}
 	},
-	logOut: function( callback ) {
-		client.api.call({
-			action: 'logout'
-		}, callback || function(){}, 'POST');
+	deferred: null,
+	bot: null,
+	execute: function( bot ) {
+		mobArchBot.bot = bot;
+		client = mobArchBot.client = bot.client;
+		var $def = mobArchBot.deferred = jqDef.Deferred();
+		
+		mobArchBot.launch();
+		return $def;
 	}
 };
 
-mobArchBot.launch();
-}(nodemw));
+module.exports = mobArchBot;
+}());
