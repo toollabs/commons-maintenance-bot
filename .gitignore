@@ -1,6 +1,7 @@
 # Custom
 /cgi-bin
 /node-v0.10.26
+/node
 .*
 !/.gitignore
 access.log
@@ -15,7 +16,6 @@ replica.my.cnf
 
 
 # C++ objects and libs
-
 *.slo
 *.lo
 *.o
@@ -27,7 +27,6 @@ replica.my.cnf
 *.dylib
 
 # Qt-es
-
 /.qmake.cache
 /.qmake.stash
 *.pro.user
@@ -40,5 +39,4 @@ Makefile*
 *-build-*
 
 # QtCreator
-
 *.autosave
