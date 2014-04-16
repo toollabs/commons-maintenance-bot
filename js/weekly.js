@@ -56,9 +56,11 @@ bot = {
 		}, t.maxTime);
 		try {
 			t.code.execute( bot ).done( function() {
+				clearTimeout(t.timeout);
 				if (!t.nextExecuted) bot.nextTask();
 			} );
 		} catch (ex) {
+			clearTimeout(t.timeout);
 			if (!t.nextExecuted) bot.nextTask();
 		}
 	},
