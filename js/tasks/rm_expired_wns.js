@@ -11,7 +11,6 @@ var $           = require('../lib/jQuery.js');
 
 
 (function() {
-// pass configuration object
 var watchlistNoticeArchBot, client;
 
 watchlistNoticeArchBot = {
