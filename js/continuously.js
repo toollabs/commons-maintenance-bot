@@ -1,30 +1,58 @@
-var nodemw	    = require('nodemw');
-var dateFormat	= require('dateformat');
-var mysql       = require('mysql')
+/*jshint node:true, expr:true*/
+
+var nodemw      = require('nodemw');
+var dateFormat  = require('dateformat');
+var mysql       = require('mysql');
 var now         = new Date();
 
 
-(function(mwn) {
+(function(MwN) {
+'use strict';
+
 // pass configuration object
-var client = new mwn('.node-bot.config.json');
+var client = new MwN('.node-bot.config.json');
 var bot;
+var errorsAllowed = 150;
+
+process.on('uncaughtException', function (err) {
+	console.log('Caught exception: ' + err);
+	if (0 === errorsAllowed) return;
+
+	errorsAllowed--;
+	setTimeout( function() {
+		client.logIn( function() {
+			// Make the server creating an editToken for our session.
+			// If we do that later while processing multiple pages, the sever
+			// would create a lot of different tokens due to replecation lag.
+			setTimeout( function() {
+				client.api.call({
+					action: 'tokens'
+				}, function(r) {
+					// this serves just as token generator...
+				} );
+			}, 1000 );
+		} );
+	}, 1000 );
+});
 
 bot = {
-	version: '0.0.0.1',
+	version: '0.1.0.0',
 	client: client,
 	// Just in case someone gets stuck or leaks memory
-	maxRunTime: 1000*60*60*6,
+	// restarted by cron every 4 hours; have a five minuts buffer
+	// in case the job was executed too late
+	maxRunTime: 1000*60*60*4 - 1000*60*5,
 	tasks: [{
 		name: 'JSHint MediaWiki and CSS Validate MediaWiki',
 		code: require('./tasks/mediawiki_validate.js'),
 		maxTime: 50000,
 		interval: 60000
-	}, {
+	}/*, {
 		name: 'Esprima user scripts',
 		code: require('./tasks/user_validate.js'),
 		maxTime: 50000,
 		interval: 150000
-	}],
+	}*/],
 	tasksDone: {},
 	launch: function() {
 		bot.logOut( function() {
@@ -50,6 +78,66 @@ bot = {
 		setTimeout(function() {
 			bot.exit();
 		}, this.maxRunTime);
+	},
+	fetchSetting: function( setting, cb ) {
+		bot.connection.query('SELECT `s_value` FROM `settings` WHERE `s_key` =?;', [setting], cb);
+	},
+	saveSetting: function( setting, value, cb ) {
+		if (!setting) return false;
+		bot.connection.query('UPDATE `settings` SET `s_value`=? WHERE `s_key` =?;', [value, setting], cb);
+	},
+	firstItem: function(obj) {
+		return obj[Object.keys(obj)[0]];
+	},
+	fetchRev: function( revId, cb ) {
+		bot.connection.query('SELECT * FROM `processed` WHERE `pd_revid` =?;', [revId], cb);
+	},
+	saveRev: function( rcid, rctimestamp, status, pageid, revid, details, cb ) {
+		bot.connection.query('INSERT IGNORE INTO `processed` (`pd_rcid` ,`pd_rctimestamp`, `pd_status`, `pd_pageid`, `pd_revid`, `pd_details`) VALUES(?, ?, ?, ?, ?, ?);',
+							 [rcid, rctimestamp, status, pageid, revid, details], cb);
+	},
+	savePage: function( pgid, pgtitle, pgns, jshint, cssvalid, esprima, cb ) {
+		bot.connection.query('SELECT "1" as `A` FROM `pages` WHERE `pg_id` =?;', [pgid], function(err, results) {
+			if (err) {
+				cb(err);
+			} else {
+				if (results.length === 0) {
+					bot.connection.query('INSERT IGNORE INTO `pages` (`pg_id` ,`pg_title`, `pg_namespace`, `pg_jshint_status`, `pg_css_validator_status`, `pg_esprima_status`) VALUES(?, ?, ?, ?, ?, ?);',
+										[pgid, pgtitle, pgns, jshint, cssvalid, esprima], cb);
+				} else {
+					bot.connection.query('UPDATE `pages` SET `pg_title`=?, `pg_namespace`=?, `pg_jshint_status`=?, `pg_css_validator_status`=?, `pg_esprima_status`=? WHERE `pg_id` =?;',
+										[pgtitle, pgns, jshint, cssvalid, esprima, pgid], cb);
+				}
+			}
+		});
+	},
+	fetchPages: function( cb )  {
+		bot.connection.query('SELECT * FROM `pages`;', [], cb);
+	},
+	appendText: function(title, content, summary, callback) {
+		var self = bot.client;
+
+		// @see http://www.mediawiki.org/wiki/API:Edit
+		self.getToken(title, 'edit', function(token) {
+			self.log("Editing " + title + "...");
+
+			self.api.call({
+				action: 'edit',
+				title: title,
+				appendtext: content,
+				bot: '',
+				summary: summary,
+				token: token,
+				redirect: 1
+			}, function(data) {
+				if (data.result && data.result === "Success") {
+					callback && callback(data);
+				}
+				else {
+					throw new Error('Edit failed');
+				}
+			}, 'POST');
+		});
 	},
 	dbCredentials: {
 		pass: '',
@@ -101,7 +189,7 @@ bot = {
 		cb && cb();
 	},
 	runTasks: function( t ) {
-		var i, l, t;
+		var i, l;
 		for (i = 0, l = this.tasks.length; i < l; ++i) {
 			t = this.tasks[i];
 			console.log( "----------------------------------------" );
@@ -113,6 +201,7 @@ bot = {
 						// Nothing
 					} );
 				} catch (ex) {
+					console.log( 'ERR:', ex );
 					bot.exit();
 				}
 			};
@@ -137,4 +226,3 @@ bot = {
 
 bot.launch();
 }(nodemw));
- 

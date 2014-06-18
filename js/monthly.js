@@ -34,13 +34,9 @@ bot = {
 	version: '0.0.0.1',
 	client: client,
 	tasks: [{
-		name: 'Archiving mobile related deletion requests',
-		code: require('./tasks/arch_mobile_drs.js'),
+		name: 'Archiving error reports',
+		code: require('./tasks/arch_error_reports.js'),
 		maxTime: 90000
-	}, {
-		name: 'Removing expired watchlist messages',
-		code: require('./tasks/rm_expired_wns.js'),
-		maxTime: 3000
 	}],
 	tasksDone: {},
 	launch: function() {
