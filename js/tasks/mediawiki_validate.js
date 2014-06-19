@@ -133,14 +133,14 @@ validator = {
 		esprima: function( errObj ) {
 			return {
 				status: ST_ERROR,
-				report: '<li>ERROR: Cannot parse <code>line ' + errObj.lineNumber + ' column ' + errObj.column + '</code>: ' + errObj.description + '</li>'
+				report: '<li>ERROR: Cannot parse <code>line ' + errObj.lineNumber + ' column ' + errObj.column + '</code>: <nowiki>' + errObj.description + '</nowiki></li>'
 			};
 		},
 		jshint: function( data ) {
 			var report = [];
 			$.each(data.errors, function(i, err) {
 				if (!err) return;
-				report.push('<li>ISSUE: <code>line ' + err.line + ' character ' + err.character + '</code>: ' + err.reason + ' - Evidence: <code>' + err.evidence + '</code></li>');
+				report.push('<li>ISSUE: <code>line ' + err.line + ' character ' + err.character + '</code>: <nowiki>' + err.reason + '</nowiki> - Evidence: <code><nowiki>' + err.evidence + '</nowiki></code></li>');
 			});
 			return {
 				status: ST_WARNING,
@@ -151,7 +151,7 @@ validator = {
 			var report = [];
 			var push2Report = function(status, obj) {
 					var t = obj.token;
-					report.push('<li>' + status + ': ' + obj.code + ': ' + '<code>line ' + t.line + ' char number ' + t.charNum + '</code> - Evidence: <code>' + t.content + '</code></li>');
+					report.push('<li>' + status + ': ' + obj.code + ': ' + '<code>line ' + t.line + ' char number ' + t.charNum + '</code> - Evidence: <code><nowiki>' + t.content + '</nowiki></code></li>');
 				},
 				pushError = function(i, err) {
 					push2Report('ERROR', err);
