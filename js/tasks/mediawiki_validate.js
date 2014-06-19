@@ -454,11 +454,15 @@ validator = {
 		var $def = jqDef.Deferred();
 		
 		validator.recentChanges = $.grep(validator.recentChanges, function(change, i) {
+			// rcend is inclusive
+			if (validator.workUntil === change.timestamp) return false;
+
 			// First item is the newest item
 			if (i === 0 && change.timestamp) {
 				// Set new workUntil date
 				validator.workUntil = change.timestamp;
 			}
+
 			return (/\.(?:css|js)$/).test(change.title);
 		});
 
@@ -480,7 +484,7 @@ validator = {
 			params = {
 				action: 'query',
 				list: 'recentchanges',
-				rclimit: 20,
+				rclimit: 50,
 				rcnamespace: 8,
 				rcprop: 'user|timestamp|ids|title|flags|tags',
 				rcshow: '!bot|!redirect',
