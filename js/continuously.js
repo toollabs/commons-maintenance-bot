@@ -13,13 +13,15 @@ var now         = new Date();
 var client = new MwN('.node-bot.config.json');
 var bot;
 var errorsAllowed = 150;
+var errorLoginTimeout;
 
 process.on('uncaughtException', function (err) {
 	console.log('Caught exception: ' + err);
 	if (0 === errorsAllowed) return;
 
 	errorsAllowed--;
-	setTimeout( function() {
+	if (errorLoginTimeout) clearTimeout(errorLoginTimeout);
+	errorLoginTimeout = setTimeout( function() {
 		client.logIn( function() {
 			// Make the server creating an editToken for our session.
 			// If we do that later while processing multiple pages, the sever
