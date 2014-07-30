@@ -43,7 +43,7 @@ uug = {
 		tasks.reduce(function(current, following) {
 			return current.then(following);
 		}, jqDef.Deferred().resolve()).then(function() {
-			console.log('okay, all done!');
+			console.log('User group update: okay, all done!');
 			uug.deferred.done();
 		});
 	},

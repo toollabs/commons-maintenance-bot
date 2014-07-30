@@ -123,6 +123,7 @@ bot = {
 	},
 	appendText: function(title, content, summary, callback) {
 		var self = bot.client;
+		var args = arguments;
 
 		// @see http://www.mediawiki.org/wiki/API:Edit
 		self.getToken(title, 'edit', function(token) {
@@ -139,11 +140,20 @@ bot = {
 			}, function(data) {
 				if (data.result && data.result === "Success") {
 					callback && callback(data);
-				}
-				else {
+				} else {
 					throw new Error('Edit failed');
 				}
-			}, 'POST');
+			}, 'POST', function(error) {
+				if (error.code === 'editconflict') {
+					console.log('Edit conflict editing ' + title);
+					
+					setTimeout(function() {
+						bot.appendText.apply(bot, Array.prototype.slice.call( args ));
+					}, 20000);
+				} else {
+					throw new Error('Edit failed');
+				}
+			});
 		});
 	},
 	dbCredentials: {
@@ -197,23 +207,29 @@ bot = {
 	},
 	runTasks: function( t ) {
 		var i, l;
+		var launch = function(t) {
+			try {
+				t.code.execute( bot ).done( function() {
+					// Nothing
+				} );
+			} catch (ex) {
+				console.log( 'ERR:', ex );
+				bot.exit();
+			}
+		};
+		var exec = function(t) {
+			launch(t);
+			setInterval( function() {
+				launch(t);
+			}, t.interval );
+		};
+		
 		for (i = 0, l = this.tasks.length; i < l; ++i) {
 			t = this.tasks[i];
 			console.log( "----------------------------------------" );
 			console.log( "Launching \"" + t.name + "\"" );
 
-			var launch = function() {
-				try {
-					t.code.execute( bot ).done( function() {
-						// Nothing
-					} );
-				} catch (ex) {
-					console.log( 'ERR:', ex );
-					bot.exit();
-				}
-			};
-			launch();
-			setInterval( launch, t.interval );
+			exec(t);
 		}
 	},
 	exit: function() {

@@ -18,7 +18,8 @@ var validator, client, cfg,
 	ST_UNKNOWN = 0;
 
 validator = {
-	version: '0.0.2.0',
+	version: '0.0.3.0',
+	type: 'user scripts: ',
 	config: {
 		baseReportDir: 'Commons:User scripts/users namespace/reports',
 		reportSummary: 'Bot: Updating validation report. Bot-has-issues? Contact [[User:Rillke|Rillke]]!',
@@ -48,7 +49,7 @@ validator = {
 		tasks.reduce(function(current, following) {
 			return current.then(following);
 		}, jqDef.Deferred().resolve()).then(function() {
-			console.log('okay, all done!');
+			console.log(validator.type + 'okay, all done!');
 		});
 	},
 
@@ -101,7 +102,7 @@ validator = {
 		
 		switch (rev.contentmodel) {
 			case 'css':
-				console.log("Validating rev." + rev.revid + " as CSS.");
+				console.log(validator.type + "Validating rev." + rev.revid + " as CSS.");
 
 				var prettycssdata = prettyCss.parse(content);
 				$def.resolve({
@@ -110,7 +111,7 @@ validator = {
 				
 				break;
 			case 'javascript':
-				console.log("Validating rev." + rev.revid + " as JavaScript.");
+				console.log(validator.type + "Validating rev." + rev.revid + " as JavaScript.");
 
 				var esprimadata = {};
 				var jshintdata = {};
@@ -197,11 +198,11 @@ validator = {
 		$.each(res, function(k, v) {
 			if ( v === true ) {
 				stati[k] = ST_OK;
-				console.log( pg.title + ' free of ' + k + ' issues.' );
+				console.log( validator.type + pg.title + ' free of ' + k + ' issues.' );
 			} else {
 				allOkay = false;
 				var parsedErrors = validator.parse[k]( v );
-				console.log( pg.title + ' has ' + k + ' issues.' );
+				console.log( validator.type + pg.title + ' has ' + k + ' issues.' );
 				report.push( '== ' + k + ' ==' + '\n<ol>\n' + parsedErrors.report + '</ol>');
 				stati[k] = parsedErrors.status;
 			}
@@ -218,16 +219,16 @@ validator = {
 				// Don't do anything
 			} else {
 				client.edit(cfg.baseReportDir + '/' + pg.title, text, cfg.reportSummary + validator.getSummaryAppendix(), function() {
-					console.log('Update to ' + cfg.baseReportDir + '/' + pg.title + ' has been successful.');
+					console.log(validator.type + 'Update to ' + cfg.baseReportDir + '/' + pg.title + ' has been successful.');
 					if (allOkay) {
 						client.delete(cfg.baseReportDir + '/' + pg.title, 'Clean up. No issues detected.' + validator.getSummaryAppendix(), $.noop);
 					}
-					console.log('Okay, continue');
+					console.log(validator.type + 'Okay, continue');
 				});
 			}
 			// Just continue updating the DB without waiting...
 			validator.bot.savePage(pg.pageid, pg.title, pg.ns, stati['jshint'], stati['prettyCss'], stati['esprima'], function(err, results) {
-				if (err) console.log(err);
+				if (err) console.log(validator.type + err);
 				$def.resolve();
 			});
 		});
@@ -298,7 +299,7 @@ validator = {
 						var newIssueCount = (v - ( details[k] || 0));
 
 						if (newIssueCount > 0) {
-							console.log('regression found ... user: ' + previousRev.user + ' ... type ... ' + k);
+							console.log(validator.type + 'regression found ... user: ' + previousRev.user + ' ... type ... ' + k);
 
 							var parsedErrors = validator.parse[k]( previousRev.validatorResult[k] );
 							if (!notificationsByUser[previousRev.user]) {
@@ -317,7 +318,8 @@ validator = {
 										'|newissuescount=' + newIssueCount +
 										'|diff=' + previousRev.revid +
 										'|report=' + '\n<ol>\n' + parsedErrors.report + '</ol>\n}}',
-									summary: 'Look here, something might be *broken*! Posting validation result. [[Special:Diff/' + previousRev.revid + '|Your change]] to [[' + pg.title + ']] introduced ' + newIssueCount + ' new issues.',
+									summary: 'Look here, something might be *broken*! Posting validation result. [[Special:Diff/' + previousRev.revid + '|Your change]] to [[' + pg.title + ']]' + 
+										' introduced ' + newIssueCount  +  (newIssueCount === 1 ? ' new issue' : ' new issues.'),
 									title: 'User talk:' + previousRev.user
 								} );
 						}
@@ -348,6 +350,7 @@ validator = {
 				}, function( r ) {
 					var page = validator.bot.firstItem( r.pages );
 					if ( page.categories && page.categories.length ) {
+						console.log(validator.type + 'User ' + user + ' opted messages out.');
 						decrementAndContinue( 'notification' );
 					} else {
 						validator.bot.appendText(title, msg, summary + validator.getSummaryAppendix(), function() {
@@ -362,7 +365,7 @@ validator = {
 	},
 	$requestPageContents: function() {
 		// Don't use the database (timely action is critical here)
-		console.log('requestPageContents');
+		console.log(validator.type + 'requestPageContents');
 		var $def = jqDef.Deferred(),
 			params = {
 				action: 'query',
@@ -384,9 +387,9 @@ validator = {
 			// Set specific params
 			// We need one more revision to be able to compare with the status before
 			var requestParams = $.extend({}, params, { titles: title, rvlimit: changesOnTitle.length + 1, rvstartid: latestRevId });
-			console.log(requestParams);
+			console.log(validator.type + requestParams);
 			validator.client.api.call( requestParams, function( r ) {
-				console.log(r);
+				console.log(validator.type + r);
 				if ( !(r && r.pages) ) {
 					// Skip page
 					return nextTitle();
@@ -412,7 +415,7 @@ validator = {
 				};
 				var oneRev = function(i, rev) {
 					// Analyze each revision if not yet in DB
-					console.log("Analyzing rev." + rev.revid);
+					console.log(validator.type + "Analyzing rev." + rev.revid);
 					pending++;
 					validator.bot.fetchRev( rev.revid, function(err, results) {
 						if (err) {
@@ -456,20 +459,20 @@ validator = {
 		return $def;
 	},
 	$saveRecentChangesLastTimestamp: function() {
-		console.log('saveRecentChangesLastTimestamp');
+		console.log(validator.type + 'saveRecentChangesLastTimestamp');
 		var $def = jqDef.Deferred();
 		validator.bot.saveSetting( 'user_last_rc_timestamp',  validator.workUntil, function(err, results) {
 			if (err) {
 				$def.reject(err);
 			} else {
-				console.log(validator.workUntil);
+				console.log(validator.type + validator.workUntil);
 				$def.resolve();
 			}
 		} );
 		return $def;
 	},
 	$filterRecentChanges: function() {
-		console.log('filterRecentChanges');
+		console.log(validator.type + 'filterRecentChanges');
 		var $def = jqDef.Deferred();
 		
 		validator.recentChanges = $.grep(validator.recentChanges, function(change, i) {
@@ -498,7 +501,7 @@ validator = {
 	},
 	recentChanges: null,
 	$queryRecentChanges: function() {
-		console.log('queryRecentChanges');
+		console.log(validator.type + 'queryRecentChanges');
 		var $def = jqDef.Deferred(),
 			params = {
 				action: 'query',
@@ -519,7 +522,7 @@ validator = {
 	},
 	workUntil: null,
 	$fetchworkUntil: function() {
-		console.log('setworkUntil');
+		console.log(validator.type + '$fetchworkUntil');
 		var $def = jqDef.Deferred();
 		
 		if (!validator.workUntil) {
