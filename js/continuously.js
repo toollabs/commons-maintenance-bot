@@ -38,23 +38,28 @@ process.on('uncaughtException', function (err) {
 });
 
 bot = {
-	version: '0.1.0.0',
+	version: '0.2.0.0',
 	client: client,
 	// Just in case someone gets stuck or leaks memory
 	// restarted by cron every 4 hours; have a five minuts buffer
 	// in case the job was executed too late
 	maxRunTime: 1000*60*60*4 - 1000*60*5,
 	tasks: [{
+		name: 'Updating user groups',
+		code: require('./tasks/update_user_groups.js'),
+		maxTime: 30000,
+		interval: 180000
+	}, {
 		name: 'JSHint MediaWiki and CSS Validate MediaWiki',
 		code: require('./tasks/mediawiki_validate.js'),
 		maxTime: 50000,
 		interval: 60000
-	}/*, {
-		name: 'Esprima user scripts',
+	}, {
+		name: 'JSHint Users and CSS Users',
 		code: require('./tasks/user_validate.js'),
 		maxTime: 50000,
-		interval: 150000
-	}*/],
+		interval: 60000
+	}],
 	tasksDone: {},
 	launch: function() {
 		bot.logOut( function() {
@@ -113,8 +118,8 @@ bot = {
 			}
 		});
 	},
-	fetchPages: function( cb )  {
-		bot.connection.query('SELECT * FROM `pages`;', [], cb);
+	fetchPages: function( cb, ns )  {
+		bot.connection.query('SELECT * FROM `pages` WHERE `pg_namespace` =?;', [ns || 8], cb);
 	},
 	appendText: function(title, content, summary, callback) {
 		var self = bot.client;

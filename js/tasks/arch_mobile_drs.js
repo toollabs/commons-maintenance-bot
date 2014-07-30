@@ -16,14 +16,14 @@ mobArchBot = {
 			to: (function() {
 				return ('Commons:Mobile app/deletion request tracking/archive/' + dateFormat(now, 'yyyy-W'));
 			}()),
-			summary: "Archiving mobile uploads deletion request page.",
+			summary: "Archiving mobile uploads deletion request page. Issues with this bot? Contact [[User:Rillke|Rillke]]!",
 			newContent: '{{Commons:Mobile app/deletion request tracking/header}}\n'
 		}, {
 			from: 'Commons:Deletion requests/mobile tracking',
 			to: (function() {
 				return ('Commons:Deletion requests/mobile tracking/archive/' + dateFormat(now, 'yyyy-W'));
 			}()),
-			summary: "Archiving mobile uploads deletion request page.",
+			summary: "Archiving mobile uploads deletion request page. Issues with this bot? Contact [[User:Rillke|Rillke]]!",
 			newContent: '__TOC__\n[[Category:MobileUpload-related deletion requests archives]]\n'
 		}]
 	},

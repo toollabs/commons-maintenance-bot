@@ -41,7 +41,7 @@ mobArchBot = {
 		if (this.config.pages.length) {
 			this.processPage( pgs.pop() );
 		} else {
-			console.log("Moved error page.");
+			console.log("Moved all error pages.");
 			this.deferred.resolve();
 		}
 	},

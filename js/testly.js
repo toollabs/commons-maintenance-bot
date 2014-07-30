@@ -36,10 +36,6 @@ bot = {
 	version: '0.0.0.1',
 	client: client,
 	tasks: [{
-		name: 'Archiving error reports',
-		code: require('./tasks/arch_error_reports.js'),
-		maxTime: 90000
-	}, {
 		name: 'Trashing logs',
 		code: require('./tasks/trash_logs.js'),
 		maxTime: 90000

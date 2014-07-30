@@ -18,13 +18,20 @@ var validator, client, cfg,
 	ST_UNKNOWN = 0;
 
 validator = {
-	version: '0.0.0.1',
+	version: '0.0.2.0',
 	config: {
 		baseReportDir: 'Commons:User scripts/reports',
-		reportSummary: 'Updating validation report'
+		reportSummary: 'Bot: Updating validation report. Bot-has-issues? Contact [[User:Rillke|Rillke]]!',
+		viewReport: "View report",
+		heading: "Script health report for {{subst:SITENAME}}",
+		detailReportHead: "This is the report page for [[$page]]. It is bot-maintained. All manual changes might be overwritten.\n",
+		deletionTemplate: '{{speedydelete|1=Code is now free of errors. This page is therefore obsolete.}}',
 	},
 	changesByRevId: {},
 	reportNeedsUpdate: false,
+	getSummaryAppendix: function() {
+		return ' v.' + validator.version;
+	},
 	launch: function() {
 		console.log('MediaWiki validate here. Validating MediaWiki pages.');
 		cfg = validator.config;
@@ -62,7 +69,7 @@ validator = {
 			return '<td style="background:' + status2color[Number(status)] + ';">' + status2text[Number(status)] + '</td>';
 		}
 		
-		return '<tr><td>[[' + record.pg_title + ']], [[' + cfg.baseReportDir  + '/' + record.pg_title +  '|view report]]</td>' +
+		return '<tr><td>[[' + record.pg_title + ']], [[' + cfg.baseReportDir  + '/' + record.pg_title +  '|' + cfg.viewReport + ']]</td>' +
 			getStatusCell(record.pg_jshint_status) +
 			getStatusCell(record.pg_css_validator_status) +
 			getStatusCell(record.pg_esprima_status) +
@@ -75,10 +82,10 @@ validator = {
 
 		validator.bot.fetchPages(function(err, res) {
 			if (err) console.log(err);
-			var reportPage = 'Script health report for {{SITENAME}}\n<table class="wikitable sortable">\n' +
+			var reportPage = cfg.heading + '\n<table class="wikitable sortable">\n' +
 			'<tr><th>Title</th><th>JSHint</th><th>PrettyCSS</th><th>Esprima</th></tr>' +
 			$.map(res, validator.dBRecord2TableRow).join('\n') + '\n</table>\n';
-			client.edit(cfg.baseReportDir, reportPage, cfg.reportSummary + ' v.' + validator.version, function() {
+			client.edit(cfg.baseReportDir, reportPage, cfg.reportSummary + validator.getSummaryAppendix(), function() {
 				$def.resolve();
 			});
 		});
@@ -185,7 +192,6 @@ validator = {
 		
 		validator.reportNeedsUpdate = true;
 		var stati = {},
-			head = "This is the report page for [[" + pg.title + "]]. It is bot-maintained. All manual changes might be overwritten.\n",
 			allOkay = true;
 
 		$.each(res, function(k, v) {
@@ -201,20 +207,20 @@ validator = {
 			}
 		});
 		
-		var text;
+		var text = cfg.detailReportHead.replace('$page', pg.title);
 		if (allOkay) {
-			text = head + '{{speedydelete|1=Code is now free of errors. This page is therefore obsolete.}}';
+			text += cfg.deletionTemplate;
 		} else {
-			text = head + report.join('\n');
+			text += report.join('\n');
 		}
 		client.getArticle(cfg.baseReportDir + '/' + pg.title, function(r) {
 			if (!r && allOkay) {
 				// Don't do anything
 			} else {
-				client.edit(cfg.baseReportDir + '/' + pg.title, text, cfg.reportSummary + ' v.' + validator.version, function() {
+				client.edit(cfg.baseReportDir + '/' + pg.title, text, cfg.reportSummary + validator.getSummaryAppendix(), function() {
 					console.log('Update to ' + cfg.baseReportDir + '/' + pg.title + ' has been successful.');
 					if (allOkay) {
-						client.delete(cfg.baseReportDir + '/' + pg.title, 'Clean up. No issues detected.', $.noop);
+						client.delete(cfg.baseReportDir + '/' + pg.title, 'Clean up. No issues detected.' + validator.getSummaryAppendix(), $.noop);
 					}
 					console.log('Okay, continue');
 				});
@@ -333,7 +339,7 @@ validator = {
 						return prevVal + '\n' + currVal.message;
 					}, '');
 
-				validator.bot.appendText(title, msg, summary + ' v.' + validator.version, function() {
+				validator.bot.appendText(title, msg, summary + validator.getSummaryAppendix(), function() {
 					decrementAndContinue( 'notification' );
 				});
 			});
