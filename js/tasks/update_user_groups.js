@@ -15,7 +15,7 @@ var uug, client, cfg,
 	ST_UNKNOWN = 0;
 
 uug = {
-	version: '0.0.0.1',
+	version: '0.0.1.1',
 	config: {
 		reportPage: 'User:CommonsMaintenanceBot/markadmins.js',
 		reportSummary: 'Bot: Updating user group members.'
@@ -127,7 +127,7 @@ uug = {
 			$def.resolve();
 		} else {
 			console.log('User group update: Old text not in store. Fetching.');
-			client.getArticle(cfg.listing, function(text) {
+			client.getArticle(cfg.reportPage, function(text) {
 				oldText = $.trim(text);
 				$def.resolve();
 			});
