@@ -3,6 +3,7 @@ var dateFormat  = require('dateformat');
 var jqDef       = require('jquery-deferred');
 var $           = require('../lib/jQuery.js');
 var now         = new Date();
+var oldText     = '';
 
 
 (function() {
@@ -33,6 +34,7 @@ uug = {
 			this.$fetchOTRS,
 			this.$fetchOversight,
 			this.$fetchCU,
+			this.$fetchOldText,
 			this.$updateReport,
 		];
 
@@ -118,11 +120,35 @@ uug = {
 		var ugName = 'steward';
 		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( ugName ) );
 	},
+	$fetchOldText: function() {
+		var $def = jqDef.Deferred();
+		if (oldText) {
+			console.log('User group update: Old text stored. Proceeding.');
+			$def.resolve();
+		} else {
+			console.log('User group update: Old text not in store. Fetching.');
+			client.getArticle(cfg.listing, function(text) {
+				oldText = $.trim(text);
+				$def.resolve();
+			});
+		}
+		return $def;
+	},
 	$updateReport: function() {
 		var $def = jqDef.Deferred();
-		client.edit(cfg.reportPage, 'mw.hook(\'userjs.script-loaded.markadmins\').fire(' + JSON.stringify(uug.groupsByUsers) + ');', cfg.reportSummary + ' v.' + uug.version, function() {
+		var newText = $.trim('mw.hook(\'userjs.script-loaded.markadmins\').fire(' + JSON.stringify(uug.groupsByUsers) + ');');
+
+		console.log('User group update: Updating report if necessary.');
+
+		if (oldText === newText) {
 			$def.resolve();
-		});
+		} else {
+			oldText = newText;
+			client.edit(cfg.reportPage, newText, cfg.reportSummary + ' v.' + uug.version, function() {
+				$def.resolve();
+			});
+		}
+
 		return $def;
 	},
 	deferred: null,
