@@ -306,7 +306,7 @@ validator = {
 								notificationsByUser[previousRev.user] = [];
 								pendingEdits++
 							}
-							if ( /\s*\{\{.{1,50}\}\}\s*/.test(rev['*']) ) {
+							if ( /^\s*\{\{.{1,50}\}\}\s*$/.test(rev['*']) ) {
 								parsedErrors.report = '<li>Please also enclose deletion templates in <nowiki>/* {{comments}} */</nowiki>. ' +
 									'Even scripts broken due to scheduling for deletion can break things.</li>\n' + parsedErrors.report;
 							}
