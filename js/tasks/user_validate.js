@@ -265,7 +265,7 @@ validator = {
 			isOption = true;
 		} catch(ex) {}
 
-		isOption = isOption || /\/EditCounterOptIn\.js$/.test( title );
+		isOption = isOption || /\/(EditCounter(?:(?:Global)?Private)?OptIn)\.js$/.test( title );
 
 		return !!isOption;
 	},
@@ -310,8 +310,9 @@ validator = {
 				// Check whether the change we checked before introduced a new regression
 				// and if that is the case, schedule a message to be sent to the user who
 				// committed this change
+				// Note that we go from new to old revisions
 				// Exclude pages where options and no executable code is stored.
-				if ( previousRev && previousRev.status > ST_OK && previousRev.validatorResult && !validator.isProtectedOption( rev['*'], pg.title ) ) {
+				if ( previousRev && previousRev.status > ST_OK && previousRev.validatorResult && !validator.isProtectedOption( previousRev['*'], pg.title ) ) {
 					// Look for the details
 					$.each(previousRev.details, function(k, v) {
 						var newIssueCount = (v - ( details[k] || 0));
