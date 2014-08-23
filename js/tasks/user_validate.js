@@ -254,6 +254,21 @@ validator = {
 			}
 		}
 	},
+	isProtectedOption: function( content, title ) {
+		var isOption;
+		// Some special pages should never be abused for storing protected options
+		if ( /\/(common|monobook|vector)\.js$/.test( title ) ) return false;
+
+		try {
+			JSON.parse( content );
+			// Valid JSON
+			isOption = true;
+		} catch(ex) {}
+
+		isOption = isOption || /\/EditCounterOptIn\.js$/.test( title );
+
+		return !!isOption;
+	},
 	$processTitleValidationResults: function( pg ) {
 		var $def = $.Deferred();
 		
@@ -293,7 +308,10 @@ validator = {
 					status = Number( rev.storedResult.pd_status );
 				}
 				// Check whether the change we checked before introduced a new regression
-				if (previousRev && previousRev.status > ST_OK && previousRev.validatorResult) {
+				// and if that is the case, schedule a message to be sent to the user who
+				// committed this change
+				// Exclude pages where options and no executable code is stored.
+				if ( previousRev && previousRev.status > ST_OK && previousRev.validatorResult && !validator.isProtectedOption( rev['*'], pg.title ) ) {
 					// Look for the details
 					$.each(previousRev.details, function(k, v) {
 						var newIssueCount = (v - ( details[k] || 0));
