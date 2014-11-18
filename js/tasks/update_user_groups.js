@@ -136,7 +136,7 @@ uug = {
 	},
 	$updateReport: function() {
 		var $def = jqDef.Deferred();
-		var newText = $.trim('mw.hook(\'userjs.script-loaded.markadmins\').fire(' + JSON.stringify(uug.groupsByUsers) + ');');
+		var newText = $.trim('mw.hook(\'userjs.script-loaded.markadmins\').fire(' + JSON.stringify(uug.groupsByUsers, null, '\t') + ');');
 
 		console.log('User group update: Updating report if necessary.');
 
