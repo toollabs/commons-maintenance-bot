@@ -19,7 +19,7 @@ watchlistNoticeArchBot = {
 		templateName: 'WatchlistNotice',
 		untilRE: /^\s*until\s*=\s*(\d{4}\-\d{2}-\d{2}(?: \d{2}:\d{2}:\d{2})?)/,
 		dateFormat: "yyyy-mm-dd hh:MM:ss",
-		listing: 'User:Rillke/WLNTest',//MediaWiki:WatchlistNotice
+		listing: 'MediaWiki:WatchlistNotice',
 		editSummary: "Bot: Removing expired messages."
 	},
 	launch: function() {

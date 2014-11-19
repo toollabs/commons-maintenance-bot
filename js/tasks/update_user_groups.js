@@ -17,7 +17,7 @@ var uug, client, cfg,
 uug = {
 	version: '0.0.1.1',
 	config: {
-		reportPage: 'User:CommonsMaintenanceBot/markadmins.js',
+		reportPage: 'MediaWiki:Gadget-markAdmin-data.js',
 		reportSummary: 'Bot: Updating user group members.'
 	},
 	changesByRevId: {},
