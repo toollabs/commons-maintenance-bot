@@ -11,6 +11,7 @@ var now         = new Date();
 
 // pass configuration object
 var client = new MwN('.node-bot.config.json');
+var metaClient = new MwN('.node-bot.meta.config.json');
 var bot;
 var errorsAllowed = 150;
 var errorLoginTimeout;
@@ -40,6 +41,7 @@ process.on('uncaughtException', function (err) {
 bot = {
 	version: '0.2.0.0',
 	client: client,
+	metaClient: metaClient,
 	// Just in case someone gets stuck or leaks memory
 	// restarted by cron every 4 hours; have a five minuts buffer
 	// in case the job was executed too late
@@ -64,6 +66,7 @@ bot = {
 	launch: function() {
 		bot.logOut( function() {
 			bot.establishDBConnection( function() {
+				metaClient.logIn();
 				client.logIn( function() {
 					// Make the server creating an editToken for our session.
 					// If we do that later while processing multiple pages, the sever

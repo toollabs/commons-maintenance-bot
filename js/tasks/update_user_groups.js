@@ -8,7 +8,7 @@ var oldText     = '';
 
 (function() {
 'use strict';
-var uug, client, cfg,
+var uug, client, metaClient, cfg,
 	ST_OK = 1,
 	ST_WARNING = 2,
 	ST_ERROR = 3,
@@ -17,7 +17,7 @@ var uug, client, cfg,
 uug = {
 	version: '0.0.1.1',
 	config: {
-		reportPage: 'MediaWiki:Gadget-markAdmin-data.js',
+		reportPage: 'MediaWiki:Gadget-markAdmins-data.js',
 		reportSummary: 'Bot: Updating user group members.'
 	},
 	changesByRevId: {},
@@ -32,6 +32,7 @@ uug = {
 			this.$fetchStewards,
 			this.$fetchImageReviewers,
 			this.$fetchOTRS,
+			this.$fetchMetaOTRS,
 			this.$fetchOversight,
 			this.$fetchCU,
 			this.$fetchOldText,
@@ -67,23 +68,19 @@ uug = {
 		var $def = jqDef.Deferred(),
 			params = {
 				action: 'query',
-				list: 'allusers',
-				augroup: ug,
-				aulimit: 'max'
+				list: 'globalallusers',
+				agugroup: ug,
+				agulimit: 'max'
 			};
 
-		var oldPath = uug.client.api.server;
-		uug.client.api.server = 'meta.wikimedia.org';
-
-		uug.client.api.call( params, function( r ) {
+		uug.metaClient.api.call( params, function( r ) {
 			$def.resolve( r );
 		}, 'POST' );
-		uug.client.api.server = oldPath;
 		return $def;
 	},
-	evalResultFunction: function( ug ) {
+	evalResultFunction: function( ug, key ) {
 		return function( r ) {
-			$.each( r.allusers, function( i, user ) {
+			$.each( r[key || 'allusers'], function( i, user ) {
 				if (!uug.usersByGroup[ug]) uug.usersByGroup[ug] = [];
 				if (!uug.groupsByUsers[user.name]) uug.groupsByUsers[user.name] = [];
 
@@ -118,7 +115,11 @@ uug = {
 	},
 	$fetchStewards: function() {
 		var ugName = 'steward';
-		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( ugName ) );
+		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( ugName, 'globalallusers' ) );
+	},
+	$fetchMetaOTRS: function() {
+		var ugName = 'OTRS-member';
+		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( 'meta-' + ugName, 'globalallusers' ) );
 	},
 	$fetchOldText: function() {
 		var $def = jqDef.Deferred();
@@ -156,6 +157,7 @@ uug = {
 	execute: function( bot ) {
 		uug.bot = bot;
 		client = uug.client = bot.client;
+		metaClient = uug.metaClient = bot.metaClient;
 		var $def = uug.deferred = jqDef.Deferred();
 		
 		uug.launch();
