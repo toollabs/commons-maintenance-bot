@@ -61,6 +61,11 @@ bot = {
 		code: require('./tasks/user_validate.js'),
 		maxTime: 50000,
 		interval: 60000
+	}, {
+		name: 'Update local copy of wgCopyUploadDomains',
+		code: require('./tasks/update_copyuploadsdomains.js'),
+		maxTime: 30000,
+		interval: 720000
 	}],
 	tasksDone: {},
 	launch: function() {

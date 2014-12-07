@@ -37,7 +37,7 @@ bot = {
 	client: client,
 	tasks: [{
 		name: 'Trashing logs',
-		code: require('./tasks/trash_logs.js'),
+		code: require('./tasks/update_copyuploadsdomains.js'),
 		maxTime: 90000
 	}],
 	tasksDone: {},
