@@ -121,7 +121,14 @@ validator = {
 				} catch (parseError) {
 					esprimadata = parseError;
 				}
-				jshintdata = jshint.JSHINT(content);
+				jshintdata = jshint.JSHINT(content, {
+					browser: true,
+					laxcomma: true,
+					laxbreak: true,
+					onevar: false,
+					maxerr: 150,
+					multistr: true
+				});
 				if (jshintdata === false) {
 					jshintdata = jshint.JSHINT.data();
 				}
