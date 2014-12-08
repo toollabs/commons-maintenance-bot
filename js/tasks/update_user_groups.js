@@ -31,7 +31,6 @@ uug = {
 			this.$fetchAdmins,
 			this.$fetchStewards,
 			this.$fetchImageReviewers,
-			this.$fetchOTRS,
 			this.$fetchMetaOTRS,
 			this.$fetchOversight,
 			this.$fetchCU,
@@ -101,10 +100,6 @@ uug = {
 		var ugName = 'Image-reviewer';
 		return uug.$fetchFromCommons( ugName ).done( uug.evalResultFunction( ugName ) );
 	},
-	$fetchOTRS: function() {
-		var ugName = 'OTRS-member';
-		return uug.$fetchFromCommons( ugName ).done( uug.evalResultFunction( ugName ) );
-	},
 	$fetchOversight: function() {
 		var ugName = 'oversight';
 		return uug.$fetchFromCommons( ugName ).done( uug.evalResultFunction( ugName ) );
@@ -119,7 +114,7 @@ uug = {
 	},
 	$fetchMetaOTRS: function() {
 		var ugName = 'OTRS-member';
-		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( 'meta-' + ugName, 'globalallusers' ) );
+		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( ugName, 'globalallusers' ) );
 	},
 	$fetchOldText: function() {
 		var $def = jqDef.Deferred();
@@ -137,7 +132,7 @@ uug = {
 	},
 	$updateReport: function() {
 		var $def = jqDef.Deferred();
-		var newText = $.trim('mw.hook(\'userjs.script-loaded.markadmins\').fire(' + JSON.stringify(uug.groupsByUsers, null, '\t') + ');');
+		var newText = $.trim('mw.hook(\'userjs.script-loaded.markadmins\').fire(' + uug.sortStringifyJSON( uug.groupsByUsers ) + ');');
 
 		console.log('User group update: Updating report if necessary.');
 
@@ -151,6 +146,23 @@ uug = {
 		}
 
 		return $def;
+	},
+	sortStringifyJSON: function( data ) {
+		var out = [],
+			userNames, userName, userGroups,
+			i;
+
+		userNames = $.map( data, function( groups, userName ) {
+			return userName;
+		} );
+		userNames.sort();
+
+		for ( i = 0; i < userNames.length; ++i ) {
+			userName = userNames[i];
+			userGroups = JSON.stringify( data[userName] ).replace( /\n/g, '\n\t' );
+			out.push( '\t' + JSON.stringify( userName ) + ': ' + userGroups );
+		}
+		return '{\n' + out.join( ',\n' ) + '\n}';
 	},
 	deferred: null,
 	bot: null,

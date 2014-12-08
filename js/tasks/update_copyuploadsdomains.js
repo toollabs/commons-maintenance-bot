@@ -33,7 +33,7 @@ copyUplDomUpdBot = {
 			if (!error && response.statusCode === 200) {
 			client.edit(
 				copyUplDomUpdBot.config.page,
-				JSON.stringify( body.copyuploadsdomains ),
+				JSON.stringify( body.copyuploadsdomains, null, '\t' ),
 				copyUplDomUpdBot.config.summary + copyUplDomUpdBot.config.source,
 				function() {
 					copyUplDomUpdBot.deferred.resolve();
