@@ -2,9 +2,9 @@ var dateFormat  = require('dateformat');
 var jqDef       = require('jquery-deferred');
 var wikiDOM     = require('../lib/libWikiDOM.js');
 var now         = new Date();
-var tomorrow    = (function() {
+var deadline    = (function() {
 							var d = new Date();
-							d.setHours( now.getHours() + 48 );
+							d.setHours( now.getHours() - 12 );
 							return d;
 						}());
 var $           = require('../lib/jQuery.js');
@@ -46,9 +46,9 @@ watchlistNoticeArchBot = {
 	processText: function(txt) {
 		var cfg       = watchlistNoticeArchBot.config;
 		var page      = wikiDOM.parser.text2Obj(txt);
-		var tomorrowS = dateFormat(tomorrow, this.config.dateFormat);
+		var deadlineS = dateFormat(deadline, this.config.dateFormat);
 
-		console.log(tomorrowS);
+		console.log( deadlineS );
 
 		var getUntil  = function(tl) {
 				var u;
@@ -71,7 +71,8 @@ watchlistNoticeArchBot = {
 			
 		eachWLT(page.nodesByType.template, function(i, tl) {
 			d = getUntil(tl);
-			if (d && d < tomorrowS) {
+			if (d && d < deadlineS) {
+				console.log( d + ' < ' + deadlineS );
 				// Remove this template
 				// TODO: There should be a ``.remove()`` in wikiDOM
 				$.each(tl.parent.parts[0], function(i, node) {
