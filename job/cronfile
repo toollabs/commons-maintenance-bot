@@ -1,5 +1,6 @@
 PATH=/usr/local/bin:/usr/bin:/bin:$HOME/node/bin:$PATH
 MAILTO=rillke@wikipedia.de
+17 3 * * * jsub -once -mem 1800m -N daily_com_m node/bin/node js/daily.js
 37 4 * * 2 jsub -once -mem 1800m -N weekly_com_m node/bin/node js/weekly.js
 49 3 19 * * jsub -once -mem 1800m -N monthly_com_m node/bin/node js/monthly.js
 13 0-23/4 * * * jsub -once -mem 1800m -N contineously_com_m node/bin/node js/continuously.js
