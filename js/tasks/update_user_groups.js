@@ -15,7 +15,7 @@ var uug, client, metaClient, cfg,
 	ST_UNKNOWN = 0;
 
 uug = {
-	version: '0.0.1.1',
+	version: '0.0.1.2',
 	config: {
 		reportPage: 'MediaWiki:Gadget-markAdmins-data.js',
 		reportSummary: 'Bot: Updating user group members.'
@@ -113,7 +113,7 @@ uug = {
 		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( ugName, 'globalallusers' ) );
 	},
 	$fetchMetaOTRS: function() {
-		var ugName = 'OTRS-member';
+		var ugName = 'otrs-member';
 		return uug.$fetchFromMeta( ugName ).done( uug.evalResultFunction( ugName, 'globalallusers' ) );
 	},
 	$fetchOldText: function() {
