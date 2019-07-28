@@ -15,7 +15,7 @@ var uug, client, metaClient, cfg,
 	ST_UNKNOWN = 0;
 
 uug = {
-	version: '0.0.1.2',
+	version: '0.0.2.0',
 	config: {
 		reportPage: 'MediaWiki:Gadget-markAdmins-data.js',
 		reportSummary: 'Bot: Updating user group members.'
@@ -58,8 +58,8 @@ uug = {
 				aulimit: 'max'
 			};
 
-		uug.client.api.call( params, function( r ) {
-			$def.resolve( r );
+		uug.client.api.call( params, function( r, next, data ) {
+			$def.resolve( r, data );
 		}, 'POST' );
 		return $def;
 	},
@@ -72,13 +72,17 @@ uug = {
 				agulimit: 'max'
 			};
 
-		uug.metaClient.api.call( params, function( r ) {
-			$def.resolve( r );
+		uug.metaClient.api.call( params, function( r, next, data ) {
+			$def.resolve( r, data );
 		}, 'POST' );
 		return $def;
 	},
 	evalResultFunction: function( ug, key ) {
-		return function( r ) {
+		return function( r, data ) {
+			if ( data.warnings ) {
+				console.log( 'User group update: Got warnings. Not adding ' + ug );
+				return console.error( 'User group update: Got warnings. Not adding ' + ug, data.warnings );
+			}
 			$.each( r[key || 'allusers'], function( i, user ) {
 				if (!uug.usersByGroup[ug]) uug.usersByGroup[ug] = [];
 				if (!uug.groupsByUsers[user.name]) uug.groupsByUsers[user.name] = [];
@@ -97,7 +101,7 @@ uug = {
 		return uug.$fetchFromCommons( ugName ).done( uug.evalResultFunction( ugName ) );
 	},
 	$fetchImageReviewers: function() {
-		var ugName = 'Image-reviewer';
+		var ugName = 'image-reviewer';
 		return uug.$fetchFromCommons( ugName ).done( uug.evalResultFunction( ugName ) );
 	},
 	$fetchOversight: function() {
@@ -135,12 +139,13 @@ uug = {
 		var newText = $.trim('mw.hook(\'userjs.script-loaded.markadmins\').fire(' + uug.sortStringifyJSON( uug.groupsByUsers ) + ');');
 
 		console.log('User group update: Updating report if necessary.');
+		console.log(uug.getSummary());
 
 		if (oldText === newText) {
 			$def.resolve();
 		} else {
 			oldText = newText;
-			client.edit(cfg.reportPage, newText, cfg.reportSummary + ' v.' + uug.version, function() {
+			client.edit(cfg.reportPage, newText, uug.getSummary(), function() {
 				$def.resolve();
 			});
 		}
@@ -163,6 +168,24 @@ uug = {
 			out.push( '\t' + JSON.stringify( userName ) + ': ' + userGroups );
 		}
 		return '{\n' + out.join( ',\n' ) + '\n}';
+	},
+	getSummary: function() {
+		var translation = {
+			sysop: 'Administrator',
+			oversight: 'Oversighter',
+			checkuser: 'Check user'
+		};
+		var sum = $.map(uug.usersByGroup, function(prop, key) {
+			var s = (prop.length === 1 ? '' : 's');
+			if (key in translation) {
+				s = translation[key] + s;
+			} else {
+				s = $.ucFirst(key) + s;
+			}
+			s += ': ' + prop.length;
+			return s;
+		}).join('; ');
+		return cfg.reportSummary + ' v.' + uug.version + ' ' + sum;
 	},
 	deferred: null,
 	bot: null,
