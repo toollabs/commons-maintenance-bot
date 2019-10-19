@@ -5,6 +5,7 @@ var validateCss = require('css-validator');
 var prettyCss   = require('PrettyCSS');
 var esprima     = require('esprima');
 var jshint      = require('jshint');
+var request     = require('request');
 var $           = require('../lib/jQuery.js');
 var now         = new Date();
 
@@ -383,14 +384,30 @@ validator = {
 					titles: 'User:' + user
 				}, function( r ) {
 					var page = validator.bot.firstItem( r.pages );
-					if ( page.categories && page.categories.length ) {
-						console.log(validator.type + 'User ' + user + ' opted messages out.');
-						decrementAndContinue( 'notification' );
-					} else {
-						validator.bot.appendText(title, msg, summary + validator.getSummaryAppendix(), function() {
+					// Also look for user page on Meta
+					// WMF implemented "global user pages" mainly for their staff
+					// and some stewards maybe.
+					// Users can place <span style="display:none">cmb-opt-out</span>
+					// in order to not get notified by this bot.
+					request.post({
+						url: 'https://meta.wikimedia.org/w/index.php',
+						form: {
+							title:'User:Rillke',
+							action:'render'
+						}
+					}, function(err, httpResponse, body){
+						var optout = body && body.indexOf('cmb-opt-out') > -1;
+						optout = optout || (page.categories && page.categories.length);
+
+						if ( optout ) {
+							console.log(validator.type + 'User ' + user + ' opted messages out.');
 							decrementAndContinue( 'notification' );
-						});
-					}
+						} else {
+							validator.bot.appendText(title, msg, summary + validator.getSummaryAppendix(), function() {
+								decrementAndContinue( 'notification' );
+							});
+						}
+					});
 				}, 'POST');
 			});
 		});
