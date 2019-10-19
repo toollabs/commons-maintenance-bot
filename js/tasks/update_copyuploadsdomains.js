@@ -30,13 +30,13 @@ copyUplDomUpdBot = {
 				'User-Agent': 'CMB Fetch Client - Reporting fraudulent values will be punished.'
 			}
 		}, function (error, response, body) {
-			if (!error && response.statusCode === 200) {
-			client.edit(
-				copyUplDomUpdBot.config.page,
-				JSON.stringify( body.copyuploadsdomains, null, '\t' ),
-				copyUplDomUpdBot.config.summary + copyUplDomUpdBot.config.source,
-				function() {
-					copyUplDomUpdBot.deferred.resolve();
+			if (!error && response.statusCode === 200 && body && body.copyuploadsdomains && body.copyuploadsdomains.length ) {
+				client.edit(
+					copyUplDomUpdBot.config.page,
+					JSON.stringify( body.copyuploadsdomains, null, '\t' ),
+					copyUplDomUpdBot.config.summary + copyUplDomUpdBot.config.source,
+					function() {
+						copyUplDomUpdBot.deferred.resolve();
 				} );
 			} else {
 				console.error( error, response );
